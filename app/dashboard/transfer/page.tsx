@@ -57,7 +57,7 @@ export default function TransferPage() {
           <p className="text-base font-bold text-slate-800">{formatNaira(nairaBalance)}</p>
         </div>
         <div className="flex-1 bg-white rounded-xl border border-slate-100 px-4 py-3">
-          <p className="text-[10px] text-slate-400 uppercase font-semibold tracking-wide">USDT Balance</p>
+          <p className="text-[10px] text-slate-400 uppercase font-semibold tracking-wide">USDC Balance</p>
           <p className="text-base font-bold text-slate-800">{formatUSDT(usdtBalance)}</p>
         </div>
       </div>
@@ -98,7 +98,7 @@ export default function TransferPage() {
               </button>
             </div>
             {currency === 'NGN' && numAmount > 0 && (
-              <p className="text-[11px] text-slate-400 mt-1">≈ {formatUSDT(numAmount / usdtRate)} USDT</p>
+              <p className="text-[11px] text-slate-400 mt-1">≈ {formatUSDT(numAmount / usdtRate)} USDC</p>
             )}
           </div>
           <div>

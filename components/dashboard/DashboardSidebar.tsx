@@ -5,6 +5,7 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { shortenAddress } from '@/lib/solana';
 import {
   LayoutDashboard, Wallet, ArrowLeftRight, Send,
   Smartphone, Database, FileText, RefreshCcw,
@@ -19,7 +20,7 @@ const navItems = [
   { icon: Smartphone,      label: 'Buy Airtime',    href: '/dashboard/airtime'                 },
   { icon: Database,        label: 'Buy Data',       href: '/dashboard/data'                    },
   { icon: FileText,        label: 'Pay Bills',      href: '/dashboard/bills'                   },
-  { icon: RefreshCcw,      label: 'USDT Exchange',  href: '/dashboard/usdt'                    },
+  { icon: RefreshCcw,      label: 'USDC Exchange',  href: '/dashboard/usdt'                    },
 ];
 
 const generalItems = [
@@ -31,13 +32,13 @@ export default function DashboardSidebar() {
   const pathname    = usePathname();
   const sidebarOpen = useAppStore((s) => s.sidebarOpen);
   const setSidebar  = useAppStore((s) => s.setSidebarOpen);
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
 
   const isActive = (href: string, exact = false) =>
     exact ? pathname === href : pathname.startsWith(href);
 
-  const displayName = profile?.full_name || 'User';
-  const displayEmail = profile?.email || '';
+  const displayName = profile?.full_name || 'Wallet User';
+  const displayEmail = user ? shortenAddress(user.walletAddress, 6, 6) : '';
   const initials = displayName
     .split(' ')
     .map((n) => n[0])

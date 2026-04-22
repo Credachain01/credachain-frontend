@@ -1,8 +1,10 @@
 'use client';
 
 import Image from 'next/image';
-import { ArrowRight, ChevronRight, Zap, RefreshCw, Wifi } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronRight, Zap, RefreshCw, Wifi } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import WalletConnectButton from '@/components/wallet/WalletConnectButton';
 
 export default function Hero() {
   const [exchangeRate, setExchangeRate] = useState(1421.50);
@@ -42,18 +44,15 @@ export default function Hero() {
           </h1>
           
           <p className="text-base md:text-lg lg:text-xl text-muted leading-relaxed max-w-2xl">
-            Creda Chain eliminates failed payments, double transactions, and slow refunds with our secure blockchain infrastructure. Support for Naira and USDT payments.
+            Creda Chain eliminates failed payments, double transactions, and slow refunds with secure blockchain rails. Demo access is now wallet-first with Naira and Solana USDC flows.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="inline-flex items-center justify-center gap-2 px-8 py-4 text-white bg-primary hover:bg-primary-dark rounded-full font-semibold transition-all shadow-[0_0_20px_rgba(65,105,225,0.3)] hover:shadow-[0_0_30px_rgba(65,105,225,0.5)]">
-              Get Started
-              <ArrowRight className="w-5 h-5" />
-            </button>
-            <button className="inline-flex items-center justify-center gap-2 px-8 py-4 text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-medium transition-all backdrop-blur-sm">
-              Learn More
+            <WalletConnectButton className="!bg-primary hover:!bg-primary-dark !shadow-[0_0_20px_rgba(65,105,225,0.3)] hover:!shadow-[0_0_30px_rgba(65,105,225,0.5)]" />
+            <Link href="/dashboard" className="inline-flex items-center justify-center gap-2 px-8 py-4 text-white bg-white/5 hover:bg-white/10 border border-white/10 rounded-full font-medium transition-all backdrop-blur-sm">
+              View Demo
               <ChevronRight className="w-5 h-5" />
-            </button>
+            </Link>
           </div>
 
         </div>
@@ -85,7 +84,7 @@ export default function Hero() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">Exchange Rate</p>
-                    <p className="text-white font-bold">1 USDT = ₦{exchangeRate.toFixed(2)}</p>
+                    <p className="text-white font-bold">1 USDC = ₦{exchangeRate.toFixed(2)}</p>
                   </div>
                 </div>
               </div>
@@ -121,4 +120,3 @@ export default function Hero() {
     </section>
   );
 }
-

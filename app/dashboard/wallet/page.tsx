@@ -8,7 +8,7 @@ import {
 import { formatNaira, formatUSDT } from '@/lib/formatters';
 import { useAppStore } from '@/lib/store';
 
-const MOCK_WALLET_ADDRESS = '0x4a2B...93Cd';
+const MOCK_WALLET_ADDRESS = '7YgP8QfR2wJmX4nLk3Vc8sTz6HdB1rNp5uAeC9xM4sQ';
 const MOCK_ACCOUNT = { bank: 'Access Bank', name: 'John Doe', number: '0123456789' };
 
 export default function WalletPage() {
@@ -56,12 +56,12 @@ export default function WalletPage() {
           </div>
         </div>
 
-        {/* USDT Wallet */}
+        {/* USDC Wallet */}
         <div className="bg-gradient-to-br from-[#14532D] to-[#166534] rounded-2xl p-6 text-white">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-2">
               <Wallet size={18} className="text-[#4ade80]" />
-              <span className="text-sm font-semibold text-green-200">USDT Wallet</span>
+              <span className="text-sm font-semibold text-green-200">USDC Wallet</span>
             </div>
             <span className="text-[10px] bg-green-400/20 text-green-300 px-2 py-0.5 rounded-full font-bold border border-green-400/30">Active</span>
           </div>
@@ -70,13 +70,13 @@ export default function WalletPage() {
           <p className="text-xs text-green-300 mb-6">≈ {formatNaira(usdtBalance * usdtRate)}</p>
           <div className="flex gap-3">
             <button
-              onClick={() => addToast('Deposit USDT via address below', 'info')}
+              onClick={() => addToast('Deposit USDC via your Solana address below', 'info')}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-green-400 hover:bg-green-300 text-green-900 rounded-xl text-sm font-bold transition"
             >
               <ArrowDownToLine size={15} /> Deposit
             </button>
             <button
-              onClick={() => addToast('USDT withdrawal initiated!', 'success')}
+              onClick={() => addToast('USDC withdrawal initiated!', 'success')}
               className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-white/10 hover:bg-white/20 rounded-xl text-sm font-bold transition border border-white/10"
             >
               <ArrowUpFromLine size={15} /> Withdraw
@@ -114,13 +114,13 @@ export default function WalletPage() {
           </div>
         </div>
 
-        {/* USDT Deposit Address */}
+        {/* USDC Deposit Address */}
         <div className="bg-white rounded-2xl border border-slate-100 p-5">
           <div className="flex items-center gap-2 mb-4">
             <QrCode size={16} className="text-[#22C55E]" />
-            <p className="text-sm font-semibold text-slate-700">USDT Deposit (TRC-20)</p>
+            <p className="text-sm font-semibold text-slate-700">USDC Deposit (Solana)</p>
           </div>
-          <p className="text-xs text-slate-500 mb-4">Send only TRC-20 USDT to this address. Other tokens will be lost.</p>
+          <p className="text-xs text-slate-500 mb-4">Send only Solana USDC to this address. SPL tokens on other networks will not arrive.</p>
           {/* QR code placeholder */}
           <div className="w-36 h-36 mx-auto rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center text-slate-300 mb-4">
             <QrCode size={56} />
@@ -128,7 +128,7 @@ export default function WalletPage() {
           </div>
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
             <code className="text-xs text-slate-700 flex-1 truncate font-mono">
-              TYMxXcGqK9aSP7nRHAeq2p4kLmN8vCuYzQ
+              {MOCK_WALLET_ADDRESS}
             </code>
             <button
               onClick={copyAddress}
@@ -139,7 +139,7 @@ export default function WalletPage() {
             </button>
           </div>
           <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
-            ⚠ Minimum deposit: $1 USDT. Confirmations required: 6.
+            Minimum deposit: 1 USDC. Typical confirmation time on Solana: under 1 minute.
           </div>
         </div>
       </div>

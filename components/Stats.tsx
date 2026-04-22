@@ -2,12 +2,6 @@
 
 import { useEffect, useState, useRef } from 'react';
 
-const stats = [
-  { label: 'Active Users', value: 87000, suffix: 'k+', display: '87' },
-  { label: 'Processed', value: 15000000000, suffix: 'B+', prefix: '₦', display: '15' },
-  { label: 'TPS Speed', value: 3500, suffix: 'k', display: '3.5' },
-];
-
 function Counter({ from, to, duration, prefix = '', suffix = '', decimals = 0 }: { from: number, to: number, duration: number, prefix?: string, suffix?: string, decimals?: number }) {
   const [count, setCount] = useState(from);
   const nodeRef = useRef<HTMLSpanElement>(null);

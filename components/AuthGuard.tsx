@@ -10,7 +10,7 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!loading && !user) {
-      router.replace('/login');
+      router.replace('/');
     }
   }, [user, loading, router]);
 
@@ -22,7 +22,7 @@ export default function AuthGuard({ children }: { children: ReactNode }) {
             <div className="absolute inset-0 rounded-full border-[3px] border-slate-200" />
             <div className="absolute inset-0 animate-spin rounded-full border-[3px] border-transparent border-t-[#4169E1]" />
           </div>
-          <p className="text-sm font-medium text-slate-500 animate-pulse">Loading CredaChain…</p>
+          <p className="text-sm font-medium text-slate-500 animate-pulse">Checking wallet session…</p>
         </div>
       </div>
     );

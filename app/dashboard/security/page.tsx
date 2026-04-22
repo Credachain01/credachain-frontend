@@ -39,16 +39,16 @@ export default function SecurityPage() {
         {twoFA && (
           <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-xl text-xs text-green-700">
             <CheckCircle size={12} className="inline mr-1" />
-            2FA is active. You&apos;ll be prompted on each login.
+            2FA is active. You&apos;ll be prompted on each wallet connection.
           </div>
         )}
       </div>
 
-      {/* Login History */}
+      {/* Wallet Connection History */}
       <div className="bg-white rounded-2xl border border-slate-100 p-6">
         <div className="flex items-center gap-2 mb-4">
           <Monitor size={16} className="text-[#4169E1]" />
-          <p className="text-sm font-semibold text-slate-700">Login History</p>
+          <p className="text-sm font-semibold text-slate-700">Wallet Connection History</p>
         </div>
         <div className="space-y-3">
           {sessions.map((s) => (

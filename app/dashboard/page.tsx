@@ -6,46 +6,47 @@ import {
   MoreHorizontal, TrendingUp, TrendingDown, Zap, ArrowUpRight,
   Smartphone, Database, Zap as ZapIcon, Droplets,
   Tv, Send, DollarSign, RefreshCcw, Sparkles, Shield, Activity,
-  CalendarDays, Loader2,
+  CalendarDays,
 } from 'lucide-react';
 import {
   BarChart, Bar, XAxis, Tooltip, ResponsiveContainer,
   Cell, PieChart, Pie,
 } from 'recharts';
-import { monthlySpendingData, networkStats } from '@/lib/mock-data';
+import { monthlySpendingData, networkStats, mockTransactions } from '@/lib/mock-data';
 import { formatNaira, formatUSDT, formatHash, formatDate } from '@/lib/formatters';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth/AuthContext';
-import { supabase } from '@/lib/supabase';
-import type { Transaction as DbTransaction, Wallet } from '@/lib/types/database';
+import { shortenAddress } from '@/lib/solana';
 
 /* ── helpers ─────────────────────────────────────────────── */
 const statusStyle: Record<string, string> = {
-  completed: 'bg-green-50 text-green-600 border border-green-200',
-  pending:   'bg-amber-50 text-amber-600 border border-amber-200',
-  failed:    'bg-red-50   text-red-600   border border-red-200',
+  Completed: 'bg-green-50 text-green-600 border border-green-200',
+  Pending:   'bg-amber-50 text-amber-600 border border-amber-200',
+  Failed:    'bg-red-50   text-red-600   border border-red-200',
 };
 
 const typeIcons: Record<string, React.ReactNode> = {
-  airtime:     <Smartphone size={14} />,
-  data:        <Database size={14} />,
-  electricity: <ZapIcon size={14} />,
-  cable:       <Tv size={14} />,
-  transfer:    <Send size={14} />,
-  usdt_buy:    <DollarSign size={14} />,
-  usdt_sell:   <RefreshCcw size={14} />,
-  wallet_fund: <ArrowUpRight size={14} />,
+  Airtime:    <Smartphone size={14} />,
+  Data:       <Database size={14} />,
+  Electricity:<ZapIcon size={14} />,
+  'Cable TV': <Tv size={14} />,
+  Water:      <Droplets size={14} />,
+  Transfer:   <Send size={14} />,
+  'USDC Buy': <DollarSign size={14} />,
+  'USDC Sell':<RefreshCcw size={14} />,
+  Deposit:    <ArrowUpRight size={14} />,
 };
 
 const typeLabels: Record<string, string> = {
-  airtime: 'Airtime',
-  data: 'Data',
-  electricity: 'Electricity',
-  cable: 'Cable TV',
-  transfer: 'Transfer',
-  usdt_buy: 'USDT Buy',
-  usdt_sell: 'USDT Sell',
-  wallet_fund: 'Wallet Fund',
+  Airtime: 'Airtime',
+  Data: 'Data',
+  Electricity: 'Electricity',
+  'Cable TV': 'Cable TV',
+  Water: 'Water',
+  Transfer: 'Transfer',
+  'USDC Buy': 'USDC Buy',
+  'USDC Sell': 'USDC Sell',
+  Deposit: 'Wallet Fund',
 };
 
 const quickServices = [
@@ -55,8 +56,8 @@ const quickServices = [
   { label: 'Water',      icon: Droplets,    color: 'bg-cyan-50   text-cyan-600',   href: '/dashboard/bills'   },
   { label: 'Cable TV',   icon: Tv,          color: 'bg-rose-50   text-rose-600',   href: '/dashboard/bills'   },
   { label: 'Transfer',   icon: Send,        color: 'bg-indigo-50 text-indigo-600', href: '/dashboard/transfer'},
-  { label: 'Buy USDT',   icon: DollarSign,  color: 'bg-green-50  text-green-600',  href: '/dashboard/usdt'    },
-  { label: 'Sell USDT',  icon: RefreshCcw,  color: 'bg-slate-50  text-slate-600',  href: '/dashboard/usdt'    },
+  { label: 'Buy USDC',   icon: DollarSign,  color: 'bg-green-50  text-green-600',  href: '/dashboard/usdt'    },
+  { label: 'Sell USDC',  icon: RefreshCcw,  color: 'bg-slate-50  text-slate-600',  href: '/dashboard/usdt'    },
 ];
 
 const spendReport = [
@@ -68,7 +69,7 @@ const spendReport = [
 
 const donutData = [
   { name: '₦ Naira',  value: 68, fill: '#4169E1' },
-  { name: 'USDT',     value: 16, fill: '#22C55E'  },
+  { name: 'USDC',     value: 16, fill: '#22C55E'  },
   { name: 'Savings',  value: 16, fill: '#F97316'  },
 ];
 
@@ -100,10 +101,9 @@ function SkeletonTransaction() {
 export default function DashboardPage() {
   const { user } = useAuth();
   const { nairaBalance, usdtBalance, usdtRate, setNairaBalance, setUsdtBalance } = useAppStore();
-  const addToast = useAppStore((s) => s.addToast);
   const [liveRate, setLiveRate] = useState(usdtRate);
 
-  const [transactions, setTransactions] = useState<DbTransaction[]>([]);
+  const [transactions, setTransactions] = useState(mockTransactions.slice(0, 5));
   const [walletsLoading, setWalletsLoading] = useState(true);
   const [txLoading, setTxLoading] = useState(true);
 
@@ -115,60 +115,19 @@ export default function DashboardPage() {
     return () => clearInterval(id);
   }, []);
 
-  // Fetch wallets from Supabase
   useEffect(() => {
     if (!user) return;
 
-    const fetchWallets = async () => {
-      setWalletsLoading(true);
-      const { data, error } = await supabase
-        .from('wallets')
-        .select('*')
-        .eq('user_id', user.id);
-
-      if (error) {
-        addToast('Failed to load wallet balances', 'error');
-        setWalletsLoading(false);
-        return;
-      }
-
-      const wallets = data as Wallet[];
-      const ngnWallet = wallets.find((w) => w.currency === 'NGN');
-      const usdtWallet = wallets.find((w) => w.currency === 'USDT');
-
-      setNairaBalance(ngnWallet ? Number(ngnWallet.balance) : 0);
-      setUsdtBalance(usdtWallet ? Number(usdtWallet.balance) : 0);
+    const timer = window.setTimeout(() => {
+      setNairaBalance(245000);
+      setUsdtBalance(128.45);
+      setTransactions(mockTransactions.slice(0, 5));
       setWalletsLoading(false);
-    };
-
-    fetchWallets();
-  }, [user, addToast, setNairaBalance, setUsdtBalance]);
-
-  // Fetch 5 most recent transactions from Supabase
-  useEffect(() => {
-    if (!user) return;
-
-    const fetchTransactions = async () => {
-      setTxLoading(true);
-      const { data, error } = await supabase
-        .from('transactions')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(5);
-
-      if (error) {
-        addToast('Failed to load transactions', 'error');
-        setTxLoading(false);
-        return;
-      }
-
-      setTransactions((data ?? []) as DbTransaction[]);
       setTxLoading(false);
-    };
+    }, 400);
 
-    fetchTransactions();
-  }, [user, addToast]);
+    return () => window.clearTimeout(timer);
+  }, [user, setNairaBalance, setUsdtBalance]);
 
   return (
     <div className="space-y-5">
@@ -176,7 +135,9 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Dashboard</h2>
-          <p className="text-sm text-slate-500">Monitor your transactions and balances.</p>
+          <p className="text-sm text-slate-500">
+            Monitor balances and activity for {user ? shortenAddress(user.walletAddress, 6, 6) : 'your connected wallet'}.
+          </p>
         </div>
         <button className="hidden sm:flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-full hover:bg-slate-50 transition">
           <CalendarDays size={14} className="text-slate-400" /> Feb 2026
@@ -231,13 +192,13 @@ export default function DashboardPage() {
               </div>
             )}
 
-            {/* USDT Balance */}
+            {/* USDC Balance */}
             {walletsLoading ? (
               <SkeletonCard />
             ) : (
               <div className="bg-white rounded-2xl p-5 border border-slate-100 flex flex-col justify-between">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs text-slate-500 font-medium">USDT Balance</span>
+                  <span className="text-xs text-slate-500 font-medium">USDC Balance</span>
                   <MoreHorizontal size={15} className="text-slate-400" />
                 </div>
                 <div className="mt-2">
@@ -248,7 +209,7 @@ export default function DashboardPage() {
                     <span className="text-xs text-slate-400">from last month</span>
                   </div>
                   <p className="text-[11px] text-slate-400 mt-1">
-                    1 USDT = ₦{liveRate.toLocaleString()}
+                    1 USDC = ₦{liveRate.toLocaleString()}
                   </p>
                 </div>
               </div>
@@ -280,13 +241,13 @@ export default function DashboardPage() {
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-semibold text-slate-700 truncate">{tx.description || typeLabels[tx.type] || tx.type}</p>
-                        <p className="text-[10px] text-slate-400">{formatDate(tx.created_at)}</p>
+                        <p className="text-[10px] text-slate-400">{formatDate(tx.date)}</p>
                       </div>
                       <div className="text-[10px] text-slate-400 font-mono hidden sm:block">
-                        {formatHash(tx.reference)}
+                        {formatHash(tx.hash)}
                       </div>
                       <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full flex-shrink-0 ${statusStyle[tx.status] ?? ''}`}>
-                        {tx.status.charAt(0).toUpperCase() + tx.status.slice(1)}
+                        {tx.status}
                       </span>
                     </div>
                   ))
@@ -425,7 +386,7 @@ export default function DashboardPage() {
                 { label: 'Current TPS',    value: `${networkStats.tps.toLocaleString()}` },
                 { label: 'Block Time',     value: `${networkStats.blockTime}s` },
                 { label: 'Success Rate',   value: `${networkStats.successRate}%` },
-                { label: 'USDT/NGN Rate',  value: `₦${liveRate.toLocaleString()}` },
+                { label: 'USDC/NGN Rate',  value: `₦${liveRate.toLocaleString()}` },
               ].map(({ label, value }) => (
                 <div key={label} className="flex items-center justify-between text-xs">
                   <span className="text-slate-500">{label}</span>

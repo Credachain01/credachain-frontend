@@ -26,7 +26,7 @@ export default function DonutChart({
   const center = size / 2;
 
   const sum = slices.reduce((acc, s) => acc + s.value, 0);
-  let offset = circumference * 0.25; // start from top (12 o'clock)
+  const baseOffset = circumference * 0.25;
 
   return (
     <div className="relative inline-flex items-center justify-center">
@@ -44,7 +44,12 @@ export default function DonutChart({
           const fraction = slice.value / sum;
           const dash = fraction * circumference;
           const gap = circumference - dash;
-          const el = (
+          const previousValue = slices
+            .slice(0, i)
+            .reduce((acc, current) => acc + current.value, 0);
+          const previousDash = (previousValue / sum) * circumference;
+
+          return (
             <circle
               key={i}
               cx={center}
@@ -54,12 +59,10 @@ export default function DonutChart({
               stroke={slice.color}
               strokeWidth={strokeWidth}
               strokeDasharray={`${dash} ${gap}`}
-              strokeDashoffset={-offset + circumference}
+              strokeDashoffset={-(baseOffset + previousDash) + circumference}
               strokeLinecap="butt"
             />
           );
-          offset += dash;
-          return el;
         })}
       </svg>
       {/* Centre label */}

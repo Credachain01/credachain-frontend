@@ -63,7 +63,7 @@ export default function Features() {
                         </div>
                         <div>
                             <h3 className="text-xl font-bold text-white mb-2">Dual Currency Support</h3>
-                            <p className="text-muted leading-relaxed">Accept payments in Nigerian Naira and USDT with auto conversion.</p>
+                            <p className="text-muted leading-relaxed">Accept payments in Nigerian Naira and Solana USDC with auto conversion.</p>
                         </div>
                     </div>
                 </div>
@@ -119,4 +119,3 @@ export default function Features() {
     </section>
   );
 }
-

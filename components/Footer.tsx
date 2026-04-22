@@ -41,7 +41,7 @@ export default function Footer() {
               <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">Data Recharge</Link></li>
               <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">Utilities Payment</Link></li>
               <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">Money Transfer</Link></li>
-              <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">USDT to Naira</Link></li>
+              <li><Link href="#" className="text-gray-400 hover:text-white transition-colors">USDC to Naira</Link></li>
             </ul>
           </div>
 
@@ -94,5 +94,4 @@ export default function Footer() {
     </footer>
   );
 }
-
 

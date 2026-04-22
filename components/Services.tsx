@@ -31,8 +31,8 @@ const services = [
   },
   {
     icon: RefreshCw,
-    title: "USDT to Naira",
-    description: "Convert cryptocurrency to Naira at best market rates.",
+    title: "USDC to Naira",
+    description: "Convert Solana USDC to Naira at demo-ready market rates.",
     color: "from-purple-500/20 to-purple-500/5",
     iconColor: "text-purple-400"
   },

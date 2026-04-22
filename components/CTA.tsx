@@ -1,3 +1,6 @@
+import Link from 'next/link';
+import WalletConnectButton from '@/components/wallet/WalletConnectButton';
+
 export default function CTA() {
   return (
     <section className="py-24 bg-[#05081A] relative overflow-hidden">
@@ -15,16 +18,14 @@ export default function CTA() {
               Ready to Experience Secure Payments?
             </h2>
             <p className="text-gray-400 text-base md:text-lg mb-8 max-w-2xl mx-auto">
-              Join thousands of businesses and individuals using Creda Chain for all their payment needs.
+              Launch the demo with a connected Solana wallet and walk straight into the dashboard.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-              <button className="px-8 py-3.5 bg-white text-black font-semibold rounded-full hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl">
-                Launch app
-              </button>
-              <button className="px-8 py-3.5 border border-white/30 text-white font-semibold rounded-full hover:bg-white/5 transition-all duration-300">
+              <WalletConnectButton className="!bg-white !text-black hover:!bg-gray-100 !border-white !shadow-lg hover:!shadow-xl" />
+              <Link href="/dashboard" className="px-8 py-3.5 border border-white/30 text-white font-semibold rounded-full hover:bg-white/5 transition-all duration-300">
                 View Demo
-              </button>
+              </Link>
             </div>
           </div>
         </div>

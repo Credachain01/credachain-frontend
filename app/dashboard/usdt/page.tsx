@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { TrendingUp, TrendingDown, ArrowRightLeft, CheckCircle, Loader2, RefreshCcw } from 'lucide-react';
+import { TrendingUp, ArrowRightLeft, CheckCircle, Loader2, RefreshCcw } from 'lucide-react';
 import {
   LineChart, Line, XAxis, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -29,8 +29,8 @@ export default function USDTPage() {
 
   const numAmount = parseFloat(amount) || 0;
   const converted = mode === 'buy'
-    ? numAmount / liveRate   // NGN → USDT
-    : numAmount * liveRate;  // USDT → NGN
+    ? numAmount / liveRate
+    : numAmount * liveRate;
   const slippage  = 0.5; // %
   const fee       = numAmount * 0.005;
 
@@ -38,17 +38,17 @@ export default function USDTPage() {
     if (!numAmount) return addToast('Enter an amount', 'warning');
     setStep('processing');
     setTxHash(generateHash());
-    setTimeout(() => { setStep('done'); addToast(`USDT ${mode === 'buy' ? 'purchase' : 'sale'} confirmed! ✓`, 'success'); }, 3000);
+    setTimeout(() => { setStep('done'); addToast(`USDC ${mode === 'buy' ? 'purchase' : 'sale'} confirmed!`, 'success'); }, 3000);
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-5">
-      <h2 className="text-xl font-bold text-slate-800">USDT Exchange</h2>
+      <h2 className="text-xl font-bold text-slate-800">USDC Exchange</h2>
 
       {/* Rate card */}
       <div className="bg-[#0D1B2A] rounded-2xl p-5 flex items-center justify-between">
         <div>
-          <p className="text-xs text-slate-400 mb-1">Live USDT / NGN Rate</p>
+          <p className="text-xs text-slate-400 mb-1">Live USDC / NGN Rate</p>
           <p className="text-3xl font-bold text-white">₦{liveRate.toLocaleString()}</p>
         </div>
         <div className="text-right">
@@ -95,14 +95,14 @@ export default function USDTPage() {
                   mode === m ? 'bg-[#4169E1] text-white shadow' : 'text-slate-500 hover:text-slate-700'
                 }`}
               >
-                {m === 'buy' ? '₦ → USDT Buy' : 'USDT → ₦ Sell'}
+                {m === 'buy' ? '₦ → USDC Buy' : 'USDC → ₦ Sell'}
               </button>
             ))}
           </div>
 
           <div>
             <label className="text-xs font-semibold text-slate-600 mb-1 block">
-              {mode === 'buy' ? 'Amount (₦)' : 'Amount (USDT)'}
+              {mode === 'buy' ? 'Amount (₦)' : 'Amount (USDC)'}
             </label>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 font-bold text-sm">
@@ -144,7 +144,7 @@ export default function USDTPage() {
 
           <button onClick={handleExchange} className="w-full py-3 bg-[#22C55E] hover:bg-[#16A34A] text-white font-bold rounded-xl transition flex items-center justify-center gap-2">
             <ArrowRightLeft size={15} />
-            {mode === 'buy' ? 'Buy USDT' : 'Sell USDT'}
+            {mode === 'buy' ? 'Buy USDC' : 'Sell USDC'}
           </button>
         </div>
       )}
@@ -165,8 +165,8 @@ export default function USDTPage() {
           <p className="text-lg font-bold text-slate-800">Exchange Complete!</p>
           <p className="text-sm text-slate-500">
             {mode === 'buy'
-              ? `You received ${formatUSDT(converted)} USDT for ${formatNaira(numAmount)}.`
-              : `You received ${formatNaira(converted)} for ${formatUSDT(numAmount)} USDT.`}
+              ? `You received ${formatUSDT(converted)} USDC for ${formatNaira(numAmount)}.`
+              : `You received ${formatNaira(converted)} for ${formatUSDT(numAmount)} USDC.`}
           </p>
           <code className="text-[10px] text-slate-400 font-mono bg-slate-50 px-3 py-1.5 rounded-lg">TX: {txHash}</code>
           <button onClick={() => { setStep('form'); setAmount(''); }}

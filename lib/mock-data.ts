@@ -1,7 +1,7 @@
 // lib/mock-data.ts
 
 export type TxStatus = 'Completed' | 'Pending' | 'Failed';
-export type TxType = 'Airtime' | 'Data' | 'Electricity' | 'Cable TV' | 'Water' | 'Transfer' | 'USDT Buy' | 'USDT Sell' | 'Deposit';
+export type TxType = 'Airtime' | 'Data' | 'Electricity' | 'Cable TV' | 'Water' | 'Transfer' | 'USDC Buy' | 'USDC Sell' | 'Deposit';
 
 export interface Transaction {
   id: string;
@@ -31,12 +31,12 @@ export interface BillProvider {
 // ── Transactions ────────────────────────────────────────────
 export const mockTransactions: Transaction[] = [
   { id: '1',  type: 'Airtime',     description: 'MTN Airtime',       amount: 500,    currency: 'NGN',  date: '2026-02-20', hash: '4XW7K9MPQR2T', status: 'Completed' },
-  { id: '2',  type: 'USDT Buy',    description: 'USDT Purchase',     amount: 50000,  currency: 'NGN',  date: '2026-02-19', hash: '7RT2B4NQZX1L', status: 'Completed' },
+  { id: '2',  type: 'USDC Buy',    description: 'USDC Purchase',     amount: 50000,  currency: 'NGN',  date: '2026-02-19', hash: '7RT2B4NQZX1L', status: 'Completed' },
   { id: '3',  type: 'Electricity', description: 'EKEDC Bill',        amount: 15000,  currency: 'NGN',  date: '2026-02-19', hash: '9KZ5A1VLMN3Y', status: 'Pending'   },
   { id: '4',  type: 'Transfer',    description: 'To Emeka Okonkwo',  amount: 25000,  currency: 'NGN',  date: '2026-02-18', hash: '2PR8C6WSTQ4F', status: 'Completed' },
   { id: '5',  type: 'Data',        description: 'Airtel 5GB Data',   amount: 1500,   currency: 'NGN',  date: '2026-02-18', hash: '6MX3E9JYBH7U', status: 'Completed' },
   { id: '6',  type: 'Cable TV',    description: 'DSTV Compact',      amount: 9000,   currency: 'NGN',  date: '2026-02-17', hash: '8NV6F2HDRS5C', status: 'Completed' },
-  { id: '7',  type: 'USDT Sell',   description: 'USDT → Naira',      amount: 36.5,   currency: 'USDT', date: '2026-02-17', hash: '1QU4G7MFDK8A', status: 'Failed'    },
+  { id: '7',  type: 'USDC Sell',   description: 'USDC → Naira',      amount: 36.5,   currency: 'USDT', date: '2026-02-17', hash: '1QU4G7MFDK8A', status: 'Failed'    },
   { id: '8',  type: 'Airtime',     description: 'Glo Airtime',       amount: 200,    currency: 'NGN',  date: '2026-02-16', hash: '3YP1H8NEKW2B', status: 'Completed' },
   { id: '9',  type: 'Transfer',    description: 'To Amaka Nwosu',    amount: 10000,  currency: 'NGN',  date: '2026-02-16', hash: '5ZQ9I3OFVL6D', status: 'Completed' },
   { id: '10', type: 'Deposit',     description: 'Naira Top-up',      amount: 100000, currency: 'NGN',  date: '2026-02-15', hash: 'AJ2K7NPCQX0R', status: 'Completed' },
@@ -54,7 +54,7 @@ export const monthlySpendingData = [
   { month: 'Feb', income: 193000, expenses: 95000 },
 ];
 
-// ── USDT rate chart ─────────────────────────────────────────
+// ── USDC rate chart ─────────────────────────────────────────
 export const usdtRateHistory = [
   { day: 'Feb 14', rate: 1540 },
   { day: 'Feb 15', rate: 1555 },

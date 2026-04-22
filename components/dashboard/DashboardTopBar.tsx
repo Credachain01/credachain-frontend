@@ -1,9 +1,10 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Search, Bell, User, Moon, Sun, Menu, Plus, LogOut } from 'lucide-react';
+import { Search, Bell, Moon, Sun, Menu, Plus, LogOut, Wallet } from 'lucide-react';
 import { useAppStore } from '@/lib/store';
 import { useAuth } from '@/lib/auth/AuthContext';
+import { shortenAddress } from '@/lib/solana';
 
 const pageTitles: Record<string, string> = {
   '/dashboard':              'Overview',
@@ -13,7 +14,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/airtime':      'Buy Airtime',
   '/dashboard/data':         'Buy Data',
   '/dashboard/bills':        'Pay Bills',
-  '/dashboard/usdt':         'USDT Exchange',
+  '/dashboard/usdt':         'USDC Exchange',
   '/dashboard/settings':     'Settings',
   '/dashboard/security':     'Security',
 };
@@ -25,7 +26,7 @@ export default function DashboardTopBar() {
   const setSidebarOpen  = useAppStore((s) => s.setSidebarOpen);
   const sidebarOpen     = useAppStore((s) => s.sidebarOpen);
   const addToast        = useAppStore((s) => s.addToast);
-  const { signOut }     = useAuth();
+  const { signOut, user } = useAuth();
 
   const title = pageTitles[pathname] ?? 'Dashboard';
 
@@ -55,6 +56,11 @@ export default function DashboardTopBar() {
 
       {/* Right actions */}
       <div className="flex items-center gap-2">
+        <div className="hidden lg:flex items-center gap-2 px-3 py-2 rounded-full bg-slate-50 border border-slate-200 text-slate-600">
+          <Wallet size={14} className="text-[#14F195]" />
+          <span className="text-xs font-semibold">{user ? shortenAddress(user.walletAddress, 4, 4) : 'No wallet'}</span>
+        </div>
+
         {/* Dark mode */}
         <button
           onClick={toggleDarkMode}
@@ -84,7 +90,7 @@ export default function DashboardTopBar() {
           className="flex items-center gap-1.5 px-4 py-2 text-sm font-bold text-white bg-[#22C55E] hover:bg-[#16A34A] rounded-full transition-all shadow-sm shadow-[#22C55E]/30"
         >
           <Plus size={15} />
-          <span className="hidden sm:inline">Add Money</span>
+          <span className="hidden sm:inline">Fund Wallet</span>
         </button>
       </div>
     </header>

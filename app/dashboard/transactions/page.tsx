@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { Search, Filter, Download, ArrowUpRight, Smartphone, Database, Zap as ZapIcon, Tv, Droplets, Send, DollarSign, RefreshCcw } from 'lucide-react';
+import { Search, Download, ArrowUpRight, Smartphone, Database, Zap as ZapIcon, Tv, Droplets, Send, DollarSign, RefreshCcw } from 'lucide-react';
 import { mockTransactions, TxType } from '@/lib/mock-data';
 import { formatNaira, formatUSDT, formatHash, formatDate } from '@/lib/formatters';
 import { useAppStore } from '@/lib/store';
@@ -19,12 +19,12 @@ const typeIcons: Record<string, React.ReactNode> = {
   'Cable TV':  <Tv size={13} />,
   Water:       <Droplets size={13} />,
   Transfer:    <Send size={13} />,
-  'USDT Buy':  <DollarSign size={13} />,
-  'USDT Sell': <RefreshCcw size={13} />,
+  'USDC Buy':  <DollarSign size={13} />,
+  'USDC Sell': <RefreshCcw size={13} />,
   Deposit:     <ArrowUpRight size={13} />,
 };
 
-const ALL_TYPES: TxType[] = ['Airtime','Data','Electricity','Cable TV','Water','Transfer','USDT Buy','USDT Sell','Deposit'];
+const ALL_TYPES: TxType[] = ['Airtime','Data','Electricity','Cable TV','Water','Transfer','USDC Buy','USDC Sell','Deposit'];
 
 export default function TransactionsPage() {
   const { addToast } = useAppStore();
@@ -109,7 +109,7 @@ export default function TransactionsPage() {
           {filtered.length === 0 && (
             <div className="py-12 text-center text-sm text-slate-400">No transactions found.</div>
           )}
-          {filtered.map((tx, i) => (
+          {filtered.map((tx) => (
             <div key={tx.id} className="px-5 py-3 grid grid-cols-12 gap-2 items-center hover:bg-slate-50 transition text-sm">
               <div className="col-span-1 flex items-center">
                 <div className="w-7 h-7 rounded-full bg-[#4169E1]/10 flex items-center justify-center text-[#4169E1]">
