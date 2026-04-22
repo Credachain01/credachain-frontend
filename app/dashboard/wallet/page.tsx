@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { PublicKey } from '@solana/web3.js';
 import {
   Wallet, Copy, QrCode, Plus, ArrowDownToLine,
   ArrowUpFromLine, Building2, CheckCircle,
@@ -10,13 +12,90 @@ import { useAppStore } from '@/lib/store';
 
 const MOCK_WALLET_ADDRESS = '7YgP8QfR2wJmX4nLk3Vc8sTz6HdB1rNp5uAeC9xM4sQ';
 const MOCK_ACCOUNT = { bank: 'Access Bank', name: 'John Doe', number: '0123456789' };
+const MAINNET_USDC_MINT = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+const DEVNET_USDC_MINT = '4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU';
 
 export default function WalletPage() {
-  const { nairaBalance, usdtBalance, usdtRate, addToast } = useAppStore();
+  const { connection } = useConnection();
+  const { connected, publicKey } = useWallet();
+  const { nairaBalance, usdtBalance, usdtRate, addToast, setUsdtBalance } = useAppStore();
   const [copied, setCopied] = useState(false);
+  const [balanceError, setBalanceError] = useState<string | null>(null);
+
+  const walletAddress = useMemo(
+    () => publicKey?.toBase58() ?? MOCK_WALLET_ADDRESS,
+    [publicKey]
+  );
+
+  const usdcMintAddress = useMemo(() => {
+    if (process.env.NEXT_PUBLIC_USDC_MINT_ADDRESS) {
+      return process.env.NEXT_PUBLIC_USDC_MINT_ADDRESS;
+    }
+
+    return connection.rpcEndpoint.includes('devnet') ? DEVNET_USDC_MINT : MAINNET_USDC_MINT;
+  }, [connection.rpcEndpoint]);
+
+  useEffect(() => {
+    let cancelled = false;
+    let intervalId: number | undefined;
+    let inFlight = false;
+
+    const loadUsdcBalance = async () => {
+      if (!connected || !publicKey) {
+        setUsdtBalance(0);
+        setBalanceError(null);
+        return;
+      }
+      if (inFlight) return;
+
+      inFlight = true;
+      try {
+        const mint = new PublicKey(usdcMintAddress);
+        const tokenAccounts = await connection.getParsedTokenAccountsByOwner(
+          publicKey,
+          { mint },
+          'confirmed'
+        );
+
+        const nextBalance = tokenAccounts.value.reduce((sum, accountInfo) => {
+          const tokenAmount = accountInfo.account.data.parsed.info.tokenAmount;
+          const uiAmount =
+            typeof tokenAmount.uiAmount === 'number'
+              ? tokenAmount.uiAmount
+              : Number(tokenAmount.uiAmountString ?? '0');
+
+          return Number.isFinite(uiAmount) ? sum + uiAmount : sum;
+        }, 0);
+
+        if (!cancelled) {
+          setUsdtBalance(nextBalance);
+          setBalanceError(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setBalanceError('Unable to refresh USDC balance right now.');
+        }
+      } finally {
+        inFlight = false;
+      }
+    };
+
+    void loadUsdcBalance();
+    if (connected && publicKey) {
+      // Keep RPC usage low while still refreshing periodically.
+      intervalId = window.setInterval(() => {
+        void loadUsdcBalance();
+      }, 60000);
+    }
+
+    return () => {
+      cancelled = true;
+      if (intervalId) window.clearInterval(intervalId);
+    };
+  }, [connected, connection, publicKey, setUsdtBalance, usdcMintAddress]);
 
   const copyAddress = () => {
-    navigator.clipboard.writeText(MOCK_WALLET_ADDRESS).catch(() => {});
+    navigator.clipboard.writeText(walletAddress).catch(() => {});
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
     addToast('Wallet address copied!', 'success');
@@ -68,6 +147,7 @@ export default function WalletPage() {
           <p className="text-sm text-green-300 mb-1">Available Balance</p>
           <p className="text-4xl font-bold mb-1">{formatUSDT(usdtBalance)}</p>
           <p className="text-xs text-green-300 mb-6">≈ {formatNaira(usdtBalance * usdtRate)}</p>
+          {balanceError ? <p className="text-[11px] text-amber-200 mb-4">{balanceError}</p> : null}
           <div className="flex gap-3">
             <button
               onClick={() => addToast('Deposit USDC via your Solana address below', 'info')}
@@ -128,7 +208,7 @@ export default function WalletPage() {
           </div>
           <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2.5">
             <code className="text-xs text-slate-700 flex-1 truncate font-mono">
-              {MOCK_WALLET_ADDRESS}
+              {walletAddress}
             </code>
             <button
               onClick={copyAddress}
