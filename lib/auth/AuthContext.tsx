@@ -1,175 +1,105 @@
-// 'use client';
+'use client';
 
-// import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from 'react';
-// import { useRouter } from 'next/navigation';
-// import type { User, Session } from '@supabase/supabase-js';
-// import { supabase } from '@/lib/supabase';
-// import type { Profile } from '@/lib/types/database';
+import { createContext, useContext, useMemo, useCallback, type ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import { useWallet } from '@solana/wallet-adapter-react';
+import { shortenAddress } from '@/lib/solana';
 
-// interface AuthContextType {
-//   user: User | null;
-//   session: Session | null;
-//   profile: Profile | null;
-//   loading: boolean;
-//   signUp: (data: SignUpData) => Promise<{ error: string | null }>;
-//   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
-//   signOut: () => Promise<void>;
-//   refreshProfile: () => Promise<void>;
-// }
+interface WalletSession {
+  id: string;
+  walletAddress: string;
+  walletProvider: string;
+}
 
-// interface SignUpData {
-//   fullName: string;
-//   email: string;
-//   phone: string;
-//   password: string;
-//   pin: string;
-// }
+interface WalletProfile {
+  full_name: string;
+  email: string;
+  wallet_address: string;
+  wallet_provider: string;
+}
 
-// const AuthContext = createContext<AuthContextType | undefined>(undefined);
+interface AuthContextType {
+  user: WalletSession | null;
+  session: WalletSession | null;
+  profile: WalletProfile | null;
+  loading: boolean;
+  connectWallet: () => Promise<{ error: string | null }>;
+  signUp: () => Promise<{ error: string | null }>;
+  signIn: () => Promise<{ error: string | null }>;
+  signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
+}
 
-// export function useAuth() {
-//   const ctx = useContext(AuthContext);
-//   if (!ctx) throw new Error('useAuth must be used within <AuthProvider>');
-//   return ctx;
-// }
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// export function AuthProvider({ children }: { children: ReactNode }) {
-//   const [user, setUser] = useState<User | null>(null);
-//   const [session, setSession] = useState<Session | null>(null);
-//   const [profile, setProfile] = useState<Profile | null>(null);
-//   const [loading, setLoading] = useState(true);
-//   const router = useRouter();
+function buildProfile(session: WalletSession | null): WalletProfile | null {
+  if (!session) return null;
 
-//   /* ── Fetch profile from Supabase ─────────────────────────── */
-//   const fetchProfile = useCallback(async (userId: string) => {
-//     const { data, error } = await supabase
-//       .from('profiles')
-//       .select('*')
-//       .eq('id', userId)
-//       .single();
+  return {
+    full_name: `${session.walletProvider} Wallet`,
+    email: shortenAddress(session.walletAddress, 6, 6),
+    wallet_address: session.walletAddress,
+    wallet_provider: session.walletProvider,
+  };
+}
 
-//     if (!error && data) {
-//       setProfile(data as Profile);
-//     }
-//   }, []);
+export function useAuth() {
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error('useAuth must be used within <AuthProvider>');
+  return ctx;
+}
 
-//   const refreshProfile = useCallback(async () => {
-//     if (user) {
-//       await fetchProfile(user.id);
-//     }
-//   }, [user, fetchProfile]);
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const router = useRouter();
+  const { publicKey, connected, connecting, disconnect, wallet, wallets, select } = useWallet();
 
-//   /* ── Listen for auth state changes ───────────────────────── */
-//   useEffect(() => {
-//     // Get initial session
-//     supabase.auth.getSession().then(({ data: { session: s } }) => {
-//       setSession(s);
-//       setUser(s?.user ?? null);
-//       if (s?.user) {
-//         fetchProfile(s.user.id);
-//       }
-//       setLoading(false);
-//     });
+  const session = useMemo<WalletSession | null>(() => {
+    if (!connected || !publicKey) return null;
 
-//     // Subscribe to auth changes
-//     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-//       async (_event, s) => {
-//         setSession(s);
-//         setUser(s?.user ?? null);
-//         if (s?.user) {
-//           await fetchProfile(s.user.id);
-//         } else {
-//           setProfile(null);
-//         }
-//         setLoading(false);
-//       }
-//     );
+    const walletAddress = publicKey.toBase58();
 
-//     return () => subscription.unsubscribe();
-//   }, [fetchProfile]);
+    return {
+      id: walletAddress,
+      walletAddress,
+      walletProvider: wallet?.adapter.name ?? 'Solana Wallet',
+    };
+  }, [connected, publicKey, wallet]);
 
-//   /* ── Sign Up ─────────────────────────────────────────────── */
-//   const signUp = async (data: SignUpData): Promise<{ error: string | null }> => {
-//     try {
-//       // 1. Hash PIN server-side
-//       const pinRes = await fetch('/api/auth/hash-pin', {
-//         method: 'POST',
-//         headers: { 'Content-Type': 'application/json' },
-//         body: JSON.stringify({ pin: data.pin }),
-//       });
+  const user = session;
+  const profile = useMemo(() => buildProfile(session), [session]);
+  const loading = connecting;
 
-//       if (!pinRes.ok) {
-//         return { error: 'Failed to process PIN. Please try again.' };
-//       }
+  const refreshProfile = useCallback(async () => undefined, []);
 
-//       const { hash: pinHash } = await pinRes.json();
+  const connectWallet = useCallback(async (): Promise<{ error: string | null }> => {
+    const preferredWallet = wallets.find((item) => item.adapter.name === 'Phantom') ?? wallets[0];
 
-//       // 2. Create auth user
-//       const { data: authData, error: authError } = await supabase.auth.signUp({
-//         email: data.email,
-//         password: data.password,
-//         options: {
-//           data: {
-//             full_name: data.fullName,
-//             phone: data.phone,
-//           },
-//         },
-//       });
+    if (!preferredWallet) {
+      return { error: 'No Solana wallet adapters are available.' };
+    }
 
-//       if (authError) return { error: authError.message };
-//       if (!authData.user) return { error: 'Signup succeeded but no user returned.' };
+    select(preferredWallet.adapter.name);
+    return { error: null };
+  }, [select, wallets]);
 
-//       const userId = authData.user.id;
+  const signUp = useCallback(async () => connectWallet(), [connectWallet]);
+  const signIn = useCallback(async () => connectWallet(), [connectWallet]);
 
-//       // 3. Create profile
-//       const { error: profileError } = await supabase.from('profiles').insert({
-//         id: userId,
-//         full_name: data.fullName,
-//         email: data.email,
-//         phone: data.phone,
-//         pin_hash: pinHash,
-//       });
+  const signOut = useCallback(async () => {
+    try {
+      await disconnect();
+    } catch {
+      // Ignore disconnect errors during demo flow.
+    }
 
-//       if (profileError) return { error: profileError.message };
+    router.push('/');
+  }, [disconnect, router]);
 
-//       // 4. Create NGN + USDT wallets
-//       const walletAddress = () =>
-//         '0x' + Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-
-//       const { error: walletError } = await supabase.from('wallets').insert([
-//         { user_id: userId, currency: 'NGN', balance: 0, wallet_address: walletAddress() },
-//         { user_id: userId, currency: 'USDT', balance: 0, wallet_address: walletAddress() },
-//       ]);
-
-//       if (walletError) return { error: walletError.message };
-
-//       return { error: null };
-//     } catch {
-//       return { error: 'An unexpected error occurred during signup.' };
-//     }
-//   };
-
-//   /* ── Sign In ─────────────────────────────────────────────── */
-//   const signIn = async (email: string, password: string): Promise<{ error: string | null }> => {
-//     const { error } = await supabase.auth.signInWithPassword({ email, password });
-//     if (error) return { error: error.message };
-//     return { error: null };
-//   };
-
-//   /* ── Sign Out ────────────────────────────────────────────── */
-//   const signOut = async () => {
-//     await supabase.auth.signOut();
-//     setUser(null);
-//     setSession(null);
-//     setProfile(null);
-//     router.push('/login');
-//   };
-
-//   return (
-//     <AuthContext.Provider value={{ user, session, profile, loading, signUp, signIn, signOut, refreshProfile }}>
-//       {children}
-//     </AuthContext.Provider>
-//   );
-// }
-
-
+  return (
+    <AuthContext.Provider
+      value={{ user, session, profile, loading, connectWallet, signUp, signIn, signOut, refreshProfile }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+}
